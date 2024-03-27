@@ -1,0 +1,36 @@
+name: finances
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres_finances
+    restart: always
+    environment:
+      POSTGRES_USER: finances
+      POSTGRES_PASSWORD: finances
+      POSTGRES_DB: finances
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    hostname: localhost
+    networks:
+      - finances
+    ports:
+      - 5432:5432
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_finances
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@mail.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    networks:
+      - finances
+    ports:
+      - 9090:80
+
+networks:
+  finances:
+    name: finances_network
+
+volumes:
+  pgdata:
