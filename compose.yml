@@ -13,8 +13,6 @@ services:
     hostname: localhost
     networks:
       - finances
-    ports:
-      - 5432:5432
 
   pgadmin:
     image: dpage/pgadmin4
