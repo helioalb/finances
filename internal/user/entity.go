@@ -13,3 +13,10 @@ type User struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+func Create(name string) *User {
+	return &User{
+		UUID: uuid.New(),
+		Name: name,
+	}
+}
