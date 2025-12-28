@@ -21,7 +21,7 @@ func (m *mockRepository) Create(ctx context.Context, user *User) (*User, error) 
 
 func TestNewService(t *testing.T) {
 	repo := &mockRepository{}
-	service := NewService(repo)
+	service := newService(repo)
 
 	if service == nil {
 		t.Fatalf("expected non-nil service")
@@ -39,7 +39,7 @@ func TestNewServiceWithNilRepo(t *testing.T) {
 		}
 	}()
 
-	NewService(nil)
+	newService(nil)
 }
 
 func TestServiceCreate(t *testing.T) {
@@ -56,7 +56,7 @@ func TestServiceCreate(t *testing.T) {
 		},
 	}
 
-	service := NewService(repo)
+	service := newService(repo)
 	createdUser, err := service.Create(context.Background(), name)
 
 	if err != nil {
@@ -77,7 +77,7 @@ func TestServiceCreateWithRepositoryError(t *testing.T) {
 		},
 	}
 
-	service := NewService(repo)
+	service := newService(repo)
 	createdUser, err := service.Create(context.Background(), "Test User")
 
 	if createdUser != nil {
@@ -104,7 +104,7 @@ func TestServiceCreatePassesUserDataCorrectly(t *testing.T) {
 		},
 	}
 
-	service := NewService(repo)
+	service := newService(repo)
 	service.Create(context.Background(), name)
 
 	if capturedUser.Name != name {
@@ -126,7 +126,7 @@ func TestServiceCreatePreservesContext(t *testing.T) {
 		},
 	}
 
-	service := NewService(repo)
+	service := newService(repo)
 	testCtx := context.WithValue(context.Background(), "key", "value")
 	service.Create(testCtx, "Test")
 

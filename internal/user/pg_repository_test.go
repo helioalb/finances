@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func TestNewRepository(t *testing.T) {
+func TestNewPgRepository(t *testing.T) {
 	t.Run("panic when db is nil", func(t *testing.T) {
 		defer func() {
 			if r := recover(); r == nil {
@@ -18,12 +18,12 @@ func TestNewRepository(t *testing.T) {
 			}
 		}()
 
-		newRepository(nil)
+		newPgRepository(nil)
 	})
 
 	t.Run("success when db is not nil", func(t *testing.T) {
 		mockDB := &sql.DB{}
-		repo := newRepository(mockDB)
+		repo := newPgRepository(mockDB)
 
 		if repo == nil {
 			t.Error("Expected repository to not be nil")
@@ -38,7 +38,7 @@ func TestNewRepository(t *testing.T) {
 func TestRepository_Create(t *testing.T) {
 	t.Run("should return error when user is nil", func(t *testing.T) {
 		mockDB := &sql.DB{}
-		repo := newRepository(mockDB)
+		repo := newPgRepository(mockDB)
 		ctx := context.Background()
 
 		_, err := repo.Create(ctx, nil)
@@ -68,7 +68,7 @@ func TestRepository_Create(t *testing.T) {
 			WillReturnRows(sqlmock.NewRows([]string{"id", "uuid", "name", "created_at", "updated_at"}).
 				AddRow(expectedUser.ID, expectedUser.UUID, expectedUser.Name, expectedUser.CreatedAt, expectedUser.UpdatedAt))
 
-		repo := newRepository(db)
+		repo := newPgRepository(db)
 		ctx := context.Background()
 		userToCreate := &User{
 			UUID: uu,

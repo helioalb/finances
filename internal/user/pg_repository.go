@@ -10,7 +10,7 @@ type repository struct {
 	db *sql.DB
 }
 
-func newRepository(db *sql.DB) *repository {
+func newPgRepository(db *sql.DB) *repository {
 	if db == nil {
 		panic("db cannot be nil")
 	}

@@ -9,18 +9,18 @@ type Repository interface {
 	Create(ctx context.Context, user *User) (*User, error)
 }
 
-type Service struct {
+type service struct {
 	repo Repository
 }
 
-func NewService(repo Repository) *Service {
+func newService(repo Repository) *service {
 	if repo == nil {
 		panic("repo cannot be nil")
 	}
-	return &Service{repo: repo}
+	return &service{repo: repo}
 }
 
-func (s *Service) Create(ctx context.Context, name string) (*User, error) {
+func (s *service) Create(ctx context.Context, name string) (*User, error) {
 	user := Create(name)
 
 	createdUser, err := s.repo.Create(ctx, user)

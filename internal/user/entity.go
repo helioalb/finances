@@ -12,6 +12,7 @@ type User struct {
 	Name      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	// TODO: add email. Should be unique
 }
 
 func Create(name string) *User {
