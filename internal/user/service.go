@@ -6,7 +6,14 @@ import (
 )
 
 type Repository interface {
-	Create(ctx context.Context, user *User) (*User, error)
+	Create(
+		ctx context.Context,
+		user *User,
+	) (*User, error)
+	GetByEmail(
+		ctx context.Context,
+		email string,
+	) (*User, error)
 }
 
 type service struct {
@@ -20,8 +27,13 @@ func newService(repo Repository) *service {
 	return &service{repo: repo}
 }
 
-func (s *service) Create(ctx context.Context, name string) (*User, error) {
-	user := Create(name)
+func (s *service) Create(ctx context.Context, user *User) (*User, error) {
+	_, err := s.repo.GetByEmail(ctx, user.Email)
+	if err == nil {
+		return nil, ErrEmailInUse
+	}
+
+	user = user.New()
 
 	createdUser, err := s.repo.Create(ctx, user)
 	if err != nil {
@@ -29,4 +41,18 @@ func (s *service) Create(ctx context.Context, name string) (*User, error) {
 	}
 
 	return createdUser, nil
+}
+
+func (s *service) GetByEmail(
+	ctx context.Context,
+	email string,
+) (*User, error) {
+	user, err := s.repo.GetByEmail(ctx, email)
+	if err != nil {
+		return nil, fmt.Errorf(
+			"service: get user by email: %w", err,
+		)
+	}
+
+	return user, nil
 }

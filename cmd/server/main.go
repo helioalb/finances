@@ -13,18 +13,20 @@ import (
 )
 
 func main() {
-	e := echo.New()
+	e := setupEcho()
 	db := setupDatabase()
-	logger := setupLogger()
+	l := setupLogger()
 
-	_ = user.Init(e, db, logger)
+	user.Init(e, db, l)
 
-	logger.Info("[server_starting][address=:8080]")
+	l.Info("[server_starting][address=:8080]")
 	e.Start(":8080")
 }
 
-func setupLogger() *slog.Logger {
-	return slog.New(slog.NewJSONHandler(os.Stdout, nil))
+func setupEcho() *echo.Echo {
+	e := echo.New()
+
+	return e
 }
 
 func setupDatabase() *sql.DB {
@@ -32,8 +34,16 @@ func setupDatabase() *sql.DB {
 
 	db, err := postgres.Connect(cfg)
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		log.Fatalf(
+			"Failed to connect to database: %v",
+			err,
+		)
 	}
 
 	return db
+}
+
+func setupLogger() *slog.Logger {
+	h := slog.NewJSONHandler(os.Stdout, nil)
+	return slog.New(h)
 }
