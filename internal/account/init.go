@@ -13,5 +13,6 @@ type Service interface {
 }
 
 func Init(e *echo.Echo, db *sql.DB, user user.Service) Service {
+	// repo = newPgRepository(db)
 	return nil
 }

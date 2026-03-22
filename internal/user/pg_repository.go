@@ -4,8 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-
-	"github.com/google/uuid"
 )
 
 type repository struct {
@@ -21,20 +19,15 @@ func newPgRepository(db *sql.DB) *repository {
 
 func (r *repository) Create(ctx context.Context, user *User) (*User, error) {
 	if user == nil {
-		return nil, fmt.Errorf(
-			"repository: user cannot be nil",
-		)
+		return nil, fmt.Errorf("repository->user cannot be nil")
 	}
 
 	query := `INSERT INTO users
-		(uuid, name, email, created_at, updated_at)
-	VALUES ($1, $2, $3, NOW(), NOW())
+		(name, email)
+	VALUES ($1, $2)
 	RETURNING id, uuid, name, email, created_at,
 		updated_at`
-	row := r.db.QueryRowContext(
-		ctx, query,
-		uuid.New(), user.Name, user.Email,
-	)
+	row := r.db.QueryRowContext(ctx, query, user.Name, user.Email)
 
 	createdUser := &User{}
 
