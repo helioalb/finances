@@ -1,4 +1,4 @@
-package user
+package account
 
 import (
 	"time"
@@ -6,11 +6,11 @@ import (
 	"github.com/google/uuid"
 )
 
-type User struct {
+type Account struct {
 	ID        int64
 	UUID      uuid.UUID
+	UserID    int64
 	Name      string
-	Email     string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

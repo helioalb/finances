@@ -2,42 +2,38 @@ package user
 
 import (
 	"errors"
-	"fmt"
-	"log/slog"
 	"net/http"
 
+	"github.com/helioalb/finances/internal/platform/httpx"
 	"github.com/labstack/echo"
 )
 
 type handler struct {
 	service Service
-	logger  *slog.Logger
+	log     echo.Logger
 }
 
-func newHandler(service Service, logger *slog.Logger) *handler {
+func newHandler(service Service, log echo.Logger) *handler {
 	if service == nil {
 		panic("service cannot be nil")
 	}
 
-	if logger == nil {
-		panic("logger cannot be nil")
-	}
-
 	return &handler{
 		service: service,
-		logger:  logger,
+		log:     log,
 	}
 }
 
 func (h *handler) Create(c echo.Context) error {
 	var req createInput
+	requestID := httpx.RequestID(c)
 
 	if err := c.Bind(&req); err != nil {
-		return badRequestResponse(c, h, err)
+		return h.badRequestResponse(c, err)
 	}
 
 	if err := req.Validate(); err != nil {
-		return unprocessableEntityResponse(c, h, err)
+		return h.unprocessableEntityResponse(c, err)
 	}
 
 	ctx := c.Request().Context()
@@ -45,40 +41,61 @@ func (h *handler) Create(c echo.Context) error {
 	user, err := h.service.Create(ctx, req.ToEntity())
 	if err != nil {
 		if errors.Is(err, ErrEmailInUse) {
-			return emailAlreadyInUseResponse(c, h, req)
+			return h.emailAlreadyInUseResponse(c)
 		}
 
-		return internalServerErrorResponse(c, h, req, err)
+		return h.internalServerErrorResponse(c, err)
 	}
+
+	h.log.Info(
+		"[user][create]",
+		"[http_status=", http.StatusCreated, "]",
+		"[user_uuid=", user.UUID.String(), "]",
+		"[request_id=", requestID, "]",
+	)
 
 	return c.JSON(http.StatusCreated, map[string]string{
 		"uuid": user.UUID.String(),
 	})
 }
 
-func badRequestResponse(c echo.Context, h *handler, err error) error {
-	h.logger.Warn(
-		fmt.Sprintf("[user][create][bad_request][error=%v]", err),
+func (h *handler) badRequestResponse(c echo.Context, err error) error {
+	requestID := httpx.RequestID(c)
+
+	h.log.Warn(
+		"[user][create]",
+		"[http_status=", http.StatusBadRequest, "]",
+		"[error=", err.Error(), "]",
+		"[request_id=", requestID, "]",
 	)
 
 	return c.JSON(http.StatusBadRequest, map[string]string{
-		"error": "bad request"},
+		"error": err.Error()},
 	)
 }
 
-func unprocessableEntityResponse(c echo.Context, h *handler, err error) error {
-	h.logger.Warn(
-		fmt.Sprintf("[user][create][unprocessable_entity][error=%v]", err),
+func (h *handler) unprocessableEntityResponse(c echo.Context, err error) error {
+	requestID := httpx.RequestID(c)
+
+	h.log.Warn(
+		"[user][create]",
+		"[http_status=", http.StatusUnprocessableEntity, "]",
+		"[error=", err.Error(), "]",
+		"[request_id=", requestID, "]",
 	)
 
 	return c.JSON(http.StatusUnprocessableEntity, map[string]string{
-		"error": "unprocessable entity"},
+		"error": err.Error()},
 	)
 }
 
-func emailAlreadyInUseResponse(c echo.Context, h *handler, req createInput) error {
-	h.logger.Warn(
-		fmt.Sprintf("[user][create][email_already_in_use][email=%s]", req.Email),
+func (h *handler) emailAlreadyInUseResponse(c echo.Context) error {
+	requestID := httpx.RequestID(c)
+
+	h.log.Warn(
+		"[user][create][email_already_in_use]",
+		"[http_status=", http.StatusConflict, "]",
+		"[request_id=", requestID, "]",
 	)
 
 	return c.JSON(http.StatusConflict, map[string]string{
@@ -86,9 +103,14 @@ func emailAlreadyInUseResponse(c echo.Context, h *handler, req createInput) erro
 	)
 }
 
-func internalServerErrorResponse(c echo.Context, h *handler, req createInput, err error) error {
-	h.logger.Error(
-		fmt.Sprintf("[user][create][error=%v][email=%s]", err, req.Email),
+func (h *handler) internalServerErrorResponse(c echo.Context, err error) error {
+	requestID := httpx.RequestID(c)
+
+	h.log.Error(
+		"[user][create]",
+		"[http_status=", http.StatusInternalServerError, "]",
+		"[err=", err.Error(), "]",
+		"[request_id=", requestID, "]",
 	)
 
 	return c.JSON(http.StatusInternalServerError, map[string]string{

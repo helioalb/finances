@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+
+	"github.com/google/uuid"
 )
 
 type repository struct {
@@ -17,10 +19,7 @@ func newPgRepository(db *sql.DB) *repository {
 	return &repository{db: db}
 }
 
-func (r *repository) Create(
-	ctx context.Context,
-	user *User,
-) (*User, error) {
+func (r *repository) Create(ctx context.Context, user *User) (*User, error) {
 	if user == nil {
 		return nil, fmt.Errorf(
 			"repository: user cannot be nil",
@@ -34,7 +33,7 @@ func (r *repository) Create(
 		updated_at`
 	row := r.db.QueryRowContext(
 		ctx, query,
-		user.UUID, user.Name, user.Email,
+		uuid.New(), user.Name, user.Email,
 	)
 
 	createdUser := &User{}
@@ -49,7 +48,7 @@ func (r *repository) Create(
 	)
 	if err != nil {
 		return nil, fmt.Errorf(
-			"repository: create user: %w",
+			"repository->create user: %w",
 			err,
 		)
 	}
@@ -57,14 +56,11 @@ func (r *repository) Create(
 	return createdUser, nil
 }
 
-func (r *repository) GetByEmail(
-	ctx context.Context,
-	email string,
-) (*User, error) {
-	query := `SELECT id, uuid, name, email, created_at,
-		updated_at
-	FROM users
-	WHERE email = $1`
+func (r *repository) GetByEmail(ctx context.Context, email string) (*User, error) {
+	query := `
+		SELECT id, uuid, name, email, created_at, updated_at
+		FROM users WHERE email = $1
+	`
 	row := r.db.QueryRowContext(ctx, query, email)
 
 	user := &User{}
@@ -82,7 +78,7 @@ func (r *repository) GetByEmail(
 			return nil, ErrUserNotFound
 		}
 		return nil, fmt.Errorf(
-			"repository: get user by email: %w",
+			"repository->get user by email: %w",
 			err,
 		)
 	}

@@ -4,18 +4,19 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"log"
-	"log/slog"
 	"net/http"
-	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
 	"github.com/helioalb/finances/configs"
+	"github.com/helioalb/finances/internal/account"
+	"github.com/helioalb/finances/internal/transaction"
 	"github.com/helioalb/finances/internal/user"
 	"github.com/helioalb/finances/pkg/postgres"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
+	"github.com/labstack/gommon/log"
 )
 
 func main() {
@@ -23,36 +24,42 @@ func main() {
 	defer stop()
 
 	e := setupEcho()
+	log := e.Logger
 
 	db := setupDatabase()
 	defer db.Close()
 
-	l := setupLogger()
+	userSvc := user.Init(e, db, log)
+	accountSvc := account.Init(e, db, userSvc)
+	transaction.Init(e, db, accountSvc)
 
-	user.Init(e, db, l)
-
-	l.Info("[server_starting][address=:8080]")
+	log.Info("[server_starting][address=:8080]")
 	go func() {
 		if err := e.Start(":8080"); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			l.Error("[server_error][message=failed_to_start_server]", "error", err)
+			log.Error("[server_error][message=failed_to_start_server]", "error", err)
 			stop()
 		}
 	}()
 
 	<-ctx.Done()
-	l.Info("[server_shutting_down]")
+	log.Info("[server_shutting_down]")
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := e.Shutdown(shutdownCtx); err != nil {
-		l.Error("[server_error][message=failed_to_shutdown_server]", "error", err)
+		log.Error("[server_error][message=failed_to_shutdown_server]", "error", err)
 	}
 }
 
 func setupEcho() *echo.Echo {
 	e := echo.New()
-	e.HideBanner = true
+	e.Logger.SetLevel(log.INFO)
+	e.Logger.SetPrefix("finances")
+	e.Logger.SetHeader(`{"time":"${time_rfc3339_nano}","level":"${level}","prefix":"${prefix}","file":"${short_file}","line":"${line}","message":"${message}"}`)
+
+	e.Use(middleware.RequestID())
+	e.Use(middleware.Recover())
 
 	return e
 }
@@ -69,9 +76,4 @@ func setupDatabase() *sql.DB {
 	}
 
 	return db
-}
-
-func setupLogger() *slog.Logger {
-	h := slog.NewJSONHandler(os.Stdout, nil)
-	return slog.New(h)
 }

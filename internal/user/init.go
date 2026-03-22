@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"database/sql"
-	"log/slog"
 
 	"github.com/labstack/echo"
 )
@@ -12,10 +11,10 @@ type Service interface {
 	Create(ctx context.Context, user *User) (*User, error)
 }
 
-func Init(e *echo.Echo, db *sql.DB, logger *slog.Logger) Service {
+func Init(e *echo.Echo, db *sql.DB, log echo.Logger) Service {
 	repo := newPgRepository(db)
 	svc := newService(repo)
-	handler := newHandler(svc, logger)
+	handler := newHandler(svc, log)
 
 	RegisterRoutes(e, handler)
 
