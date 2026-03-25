@@ -1,6 +1,6 @@
 COMPOSE_FILE := deployments/compose.yml
 
-.PHONY: up down down-purge logs ps restart
+.PHONY: up down purge logs ps restart
 
 up:
 	docker compose -f $(COMPOSE_FILE) up -d
@@ -8,7 +8,7 @@ up:
 down:
 	docker compose -f $(COMPOSE_FILE) down
 
-down-purge:
+purge:
 	docker compose -f $(COMPOSE_FILE) down --volumes --remove-orphans
 
 logs:
