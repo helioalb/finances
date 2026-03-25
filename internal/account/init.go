@@ -17,7 +17,7 @@ func Init(e *echo.Echo, db *sql.DB, userSvc user.Service, log echo.Logger) Servi
 	service := newService(repo, userSvc)
 	handler := newHandler(service, log)
 
-	RegisterRoutes(e, handler)
+	registerRoutes(e, handler)
 
 	return service
 }

@@ -8,19 +8,19 @@ import (
 	"github.com/google/uuid"
 )
 
-type repository struct {
+type pgRepository struct {
 	db *sql.DB
 }
 
-func newPgRepository(db *sql.DB) *repository {
+func newPgRepository(db *sql.DB) *pgRepository {
 	if db == nil {
 		panic("db cannot be nil")
 	}
 
-	return &repository{db: db}
+	return &pgRepository{db: db}
 }
 
-func (r *repository) Create(ctx context.Context, account *Account) (*Account, error) {
+func (r *pgRepository) Create(ctx context.Context, account *Account) (*Account, error) {
 	if account == nil {
 		return nil, fmt.Errorf("repository->account cannot be nil")
 	}
@@ -50,7 +50,7 @@ func (r *repository) Create(ctx context.Context, account *Account) (*Account, er
 	return createdAccount, nil
 }
 
-func (r *repository) GetByOwnerUUIDAndName(ctx context.Context, ownerUUID uuid.UUID, name string) (*Account, error) {
+func (r *pgRepository) GetByOwnerUUIDAndName(ctx context.Context, ownerUUID uuid.UUID, name string) (*Account, error) {
 	query := `
 		SELECT a.id, a.uuid, a.name, a.user_id, a.created_at, a.updated_at
 		FROM accounts a

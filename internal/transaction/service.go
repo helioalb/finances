@@ -6,15 +6,15 @@ import (
 	"github.com/google/uuid"
 )
 
-type Repository interface {
+type repository interface {
 	Create(ctx context.Context, transaction *Transaction) error
 }
 
 type service struct {
-	repo Repository
+	repo repository
 }
 
-func newService(repo Repository) *service {
+func newService(repo repository) *service {
 	return &service{repo: repo}
 }
 

@@ -7,17 +7,17 @@ import (
 	"github.com/helioalb/finances/internal/user"
 )
 
-type Repository interface {
+type repository interface {
 	Create(ctx context.Context, account *Account) (*Account, error)
 	GetByOwnerUUIDAndName(ctx context.Context, ownerUUID uuid.UUID, name string) (*Account, error)
 }
 
 type service struct {
-	repo    Repository
+	repo    repository
 	userSvc user.Service
 }
 
-func newService(repo Repository, userSvc user.Service) *service {
+func newService(repo repository, userSvc user.Service) *service {
 	return &service{
 		repo:    repo,
 		userSvc: userSvc,
@@ -27,7 +27,7 @@ func newService(repo Repository, userSvc user.Service) *service {
 func (s *service) Create(ctx context.Context, input CreateInput) (*Account, error) {
 	_, err := s.repo.GetByOwnerUUIDAndName(ctx, input.OwnerUUID, input.Name)
 	if err == nil {
-		return nil, ErrAccountAlreadyExists
+		return nil, errAccountAlreadyExists
 	}
 
 	user, err := s.userSvc.GetByUUID(ctx, input.OwnerUUID)

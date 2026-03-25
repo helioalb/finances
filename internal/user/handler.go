@@ -36,7 +36,7 @@ func (h *handler) Create(c echo.Context) error {
 
 	user, err := h.svc.Create(ctx, input)
 	if err != nil {
-		if errors.Is(err, ErrEmailInUse) {
+		if errors.Is(err, errEmailInUse) {
 			return h.emailAlreadyInUseResponse(c)
 		}
 

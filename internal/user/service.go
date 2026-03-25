@@ -7,27 +7,24 @@ import (
 	"github.com/google/uuid"
 )
 
-type Repository interface {
+type repository interface {
 	Create(ctx context.Context, user *User) (*User, error)
 	GetByEmail(ctx context.Context, email string) (*User, error)
 	GetByUUID(ctx context.Context, uuid uuid.UUID) (*User, error)
 }
 
 type service struct {
-	repo Repository
+	repo repository
 }
 
-func newService(repo Repository) *service {
-	if repo == nil {
-		panic("repo cannot be nil")
-	}
+func newService(repo repository) *service {
 	return &service{repo: repo}
 }
 
 func (s *service) Create(ctx context.Context, input CreateInput) (*User, error) {
 	_, err := s.repo.GetByEmail(ctx, input.Email)
 	if err == nil {
-		return nil, ErrEmailInUse
+		return nil, errEmailInUse
 	}
 
 	user := input.ToEntity()

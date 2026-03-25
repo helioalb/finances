@@ -5,14 +5,14 @@ import (
 	"database/sql"
 )
 
-type repository struct {
+type pgRepository struct {
 	db *sql.DB
 }
 
-func newPgRepository(db *sql.DB) *repository {
-	return &repository{db: db}
+func newPgRepository(db *sql.DB) *pgRepository {
+	return &pgRepository{db: db}
 }
 
-func (r *repository) Create(ctx context.Context, transaction *Transaction) error {
+func (r *pgRepository) Create(ctx context.Context, transaction *Transaction) error {
 	return nil
 }

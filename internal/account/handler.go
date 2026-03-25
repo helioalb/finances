@@ -35,7 +35,7 @@ func (h *handler) Create(c echo.Context) error {
 
 	account, err := h.service.Create(ctx, input)
 	if err != nil {
-		if errors.Is(err, ErrAccountAlreadyExists) {
+		if errors.Is(err, errAccountAlreadyExists) {
 			return h.accountAlreadyExistsResponse(c)
 		}
 
