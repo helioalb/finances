@@ -9,10 +9,15 @@ import (
 )
 
 type Service interface {
-	Create(ctx context.Context, account *Account) (*Account, error)
+	Create(ctx context.Context, input CreateInput) (*Account, error)
 }
 
-func Init(e *echo.Echo, db *sql.DB, user user.Service) Service {
-	// repo = newPgRepository(db)
-	return nil
+func Init(e *echo.Echo, db *sql.DB, userSvc user.Service, log echo.Logger) Service {
+	repo := newPgRepository(db)
+	service := newService(repo, userSvc)
+	handler := newHandler(service, log)
+
+	RegisterRoutes(e, handler)
+
+	return service
 }

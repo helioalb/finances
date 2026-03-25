@@ -4,11 +4,13 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo"
 )
 
 type Service interface {
-	Create(ctx context.Context, user *User) (*User, error)
+	Create(ctx context.Context, input CreateInput) (*User, error)
+	GetByUUID(ctx context.Context, uuid uuid.UUID) (*User, error)
 }
 
 func Init(e *echo.Echo, db *sql.DB, log echo.Logger) Service {
