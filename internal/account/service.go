@@ -8,8 +8,8 @@ import (
 )
 
 type repository interface {
-	Create(ctx context.Context, account *Account) (*Account, error)
-	GetByOwnerUUIDAndName(ctx context.Context, ownerUUID uuid.UUID, name string) (*Account, error)
+	Create(ctx context.Context, account *Entity) (*Entity, error)
+	GetByOwnerUUIDAndName(ctx context.Context, ownerUUID uuid.UUID, name string) (*Entity, error)
 }
 
 type service struct {
@@ -24,7 +24,7 @@ func newService(repo repository, userSvc user.Service) *service {
 	}
 }
 
-func (s *service) Create(ctx context.Context, input CreateInput) (*Account, error) {
+func (s *service) Create(ctx context.Context, input CreateInput) (*Entity, error) {
 	_, err := s.repo.GetByOwnerUUIDAndName(ctx, input.OwnerUUID, input.Name)
 	if err == nil {
 		return nil, errAccountAlreadyExists
@@ -35,7 +35,7 @@ func (s *service) Create(ctx context.Context, input CreateInput) (*Account, erro
 		return nil, err
 	}
 
-	account := &Account{
+	account := &Entity{
 		Name:   input.Name,
 		UserID: user.ID,
 	}

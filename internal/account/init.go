@@ -9,7 +9,7 @@ import (
 )
 
 type Service interface {
-	Create(ctx context.Context, input CreateInput) (*Account, error)
+	Create(ctx context.Context, input CreateInput) (*Entity, error)
 }
 
 func Init(e *echo.Echo, db *sql.DB, userSvc user.Service, log echo.Logger) Service {

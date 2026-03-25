@@ -7,7 +7,7 @@ import (
 )
 
 type repository interface {
-	Create(ctx context.Context, transaction *Transaction) error
+	Create(ctx context.Context, transaction *Entity) error
 }
 
 type service struct {

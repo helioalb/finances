@@ -19,7 +19,7 @@ func newPgRepository(db *sql.DB) *pgRepository {
 	return &pgRepository{db: db}
 }
 
-func (r *pgRepository) Create(ctx context.Context, user *User) (*User, error) {
+func (r *pgRepository) Create(ctx context.Context, user *Entity) (*Entity, error) {
 	if user == nil {
 		return nil, fmt.Errorf("repository->user cannot be nil")
 	}
@@ -31,7 +31,7 @@ func (r *pgRepository) Create(ctx context.Context, user *User) (*User, error) {
 		updated_at`
 	row := r.db.QueryRowContext(ctx, query, user.Name, user.Email)
 
-	createdUser := &User{}
+	createdUser := &Entity{}
 
 	err := row.Scan(
 		&createdUser.ID,
@@ -51,14 +51,14 @@ func (r *pgRepository) Create(ctx context.Context, user *User) (*User, error) {
 	return createdUser, nil
 }
 
-func (r *pgRepository) GetByEmail(ctx context.Context, email string) (*User, error) {
+func (r *pgRepository) GetByEmail(ctx context.Context, email string) (*Entity, error) {
 	query := `
 		SELECT id, uuid, name, email, created_at, updated_at
 		FROM users WHERE email = $1
 	`
 	row := r.db.QueryRowContext(ctx, query, email)
 
-	user := &User{}
+	user := &Entity{}
 
 	err := row.Scan(
 		&user.ID,
@@ -81,14 +81,14 @@ func (r *pgRepository) GetByEmail(ctx context.Context, email string) (*User, err
 	return user, nil
 }
 
-func (r *pgRepository) GetByUUID(ctx context.Context, uuid uuid.UUID) (*User, error) {
+func (r *pgRepository) GetByUUID(ctx context.Context, uuid uuid.UUID) (*Entity, error) {
 	query := `
 		SELECT id, uuid, name, email, created_at, updated_at
 		FROM users WHERE uuid = $1
 	`
 	row := r.db.QueryRowContext(ctx, query, uuid)
 
-	user := &User{}
+	user := &Entity{}
 
 	err := row.Scan(
 		&user.ID,

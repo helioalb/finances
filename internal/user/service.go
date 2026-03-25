@@ -8,9 +8,9 @@ import (
 )
 
 type repository interface {
-	Create(ctx context.Context, user *User) (*User, error)
-	GetByEmail(ctx context.Context, email string) (*User, error)
-	GetByUUID(ctx context.Context, uuid uuid.UUID) (*User, error)
+	Create(ctx context.Context, user *Entity) (*Entity, error)
+	GetByEmail(ctx context.Context, email string) (*Entity, error)
+	GetByUUID(ctx context.Context, uuid uuid.UUID) (*Entity, error)
 }
 
 type service struct {
@@ -21,7 +21,7 @@ func newService(repo repository) *service {
 	return &service{repo: repo}
 }
 
-func (s *service) Create(ctx context.Context, input CreateInput) (*User, error) {
+func (s *service) Create(ctx context.Context, input CreateInput) (*Entity, error) {
 	_, err := s.repo.GetByEmail(ctx, input.Email)
 	if err == nil {
 		return nil, errEmailInUse
@@ -37,7 +37,7 @@ func (s *service) Create(ctx context.Context, input CreateInput) (*User, error) 
 	return createdUser, nil
 }
 
-func (s *service) GetByEmail(ctx context.Context, email string) (*User, error) {
+func (s *service) GetByEmail(ctx context.Context, email string) (*Entity, error) {
 	user, err := s.repo.GetByEmail(ctx, email)
 	if err != nil {
 		return nil, fmt.Errorf(
@@ -48,7 +48,7 @@ func (s *service) GetByEmail(ctx context.Context, email string) (*User, error) {
 	return user, nil
 }
 
-func (s *service) GetByUUID(ctx context.Context, uuid uuid.UUID) (*User, error) {
+func (s *service) GetByUUID(ctx context.Context, uuid uuid.UUID) (*Entity, error) {
 	user, err := s.repo.GetByUUID(ctx, uuid)
 	if err != nil {
 		return nil, fmt.Errorf(

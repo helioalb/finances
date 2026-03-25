@@ -17,8 +17,8 @@ func (ci *CreateInput) Validate() error {
 	return validate.Struct(ci)
 }
 
-func (ci *CreateInput) ToEntity() *User {
-	return &User{
+func (ci *CreateInput) ToEntity() *Entity {
+	return &Entity{
 		Name:  ci.Name,
 		Email: ci.Email,
 	}

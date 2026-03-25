@@ -20,7 +20,7 @@ func newPgRepository(db *sql.DB) *pgRepository {
 	return &pgRepository{db: db}
 }
 
-func (r *pgRepository) Create(ctx context.Context, account *Account) (*Account, error) {
+func (r *pgRepository) Create(ctx context.Context, account *Entity) (*Entity, error) {
 	if account == nil {
 		return nil, fmt.Errorf("repository->account cannot be nil")
 	}
@@ -30,7 +30,7 @@ func (r *pgRepository) Create(ctx context.Context, account *Account) (*Account, 
 		RETURNING id, uuid, name, user_id, created_at, updated_at`
 
 	row := r.db.QueryRowContext(ctx, query, account.Name, account.UserID)
-	createdAccount := &Account{}
+	createdAccount := &Entity{}
 
 	err := row.Scan(
 		&createdAccount.ID,
@@ -50,7 +50,7 @@ func (r *pgRepository) Create(ctx context.Context, account *Account) (*Account, 
 	return createdAccount, nil
 }
 
-func (r *pgRepository) GetByOwnerUUIDAndName(ctx context.Context, ownerUUID uuid.UUID, name string) (*Account, error) {
+func (r *pgRepository) GetByOwnerUUIDAndName(ctx context.Context, ownerUUID uuid.UUID, name string) (*Entity, error) {
 	query := `
 		SELECT a.id, a.uuid, a.name, a.user_id, a.created_at, a.updated_at
 		FROM accounts a
@@ -59,7 +59,7 @@ func (r *pgRepository) GetByOwnerUUIDAndName(ctx context.Context, ownerUUID uuid
 	`
 	row := r.db.QueryRowContext(ctx, query, ownerUUID, name)
 
-	account := &Account{}
+	account := &Entity{}
 
 	err := row.Scan(
 		&account.ID,

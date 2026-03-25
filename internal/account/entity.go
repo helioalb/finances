@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type Account struct {
+type Entity struct {
 	ID        int64
 	UUID      uuid.UUID
 	UserID    int64
