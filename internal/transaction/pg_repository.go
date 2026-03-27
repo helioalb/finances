@@ -2,14 +2,15 @@ package transaction
 
 import (
 	"context"
-	"database/sql"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type pgRepository struct {
-	db *sql.DB
+	db *pgxpool.Pool
 }
 
-func newPgRepository(db *sql.DB) *pgRepository {
+func newPgRepository(db *pgxpool.Pool) *pgRepository {
 	return &pgRepository{db: db}
 }
 

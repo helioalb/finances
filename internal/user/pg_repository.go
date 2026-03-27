@@ -2,17 +2,18 @@ package user
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type pgRepository struct {
-	db *sql.DB
+	db *pgxpool.Pool
 }
 
-func newPgRepository(db *sql.DB) *pgRepository {
+func newPgRepository(db *pgxpool.Pool) *pgRepository {
 	if db == nil {
 		panic("db cannot be nil")
 	}
@@ -29,7 +30,7 @@ func (r *pgRepository) Create(ctx context.Context, user *Entity) (*Entity, error
 	VALUES ($1, $2)
 	RETURNING id, uuid, name, email, created_at,
 		updated_at`
-	row := r.db.QueryRowContext(ctx, query, user.Name, user.Email)
+	row := r.db.QueryRow(ctx, query, user.Name, user.Email)
 
 	createdUser := &Entity{}
 
@@ -56,7 +57,7 @@ func (r *pgRepository) GetByEmail(ctx context.Context, email string) (*Entity, e
 		SELECT id, uuid, name, email, created_at, updated_at
 		FROM users WHERE email = $1
 	`
-	row := r.db.QueryRowContext(ctx, query, email)
+	row := r.db.QueryRow(ctx, query, email)
 
 	user := &Entity{}
 
@@ -69,7 +70,7 @@ func (r *pgRepository) GetByEmail(ctx context.Context, email string) (*Entity, e
 		&user.UpdatedAt,
 	)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err == pgx.ErrNoRows {
 			return nil, errUserNotFound
 		}
 		return nil, fmt.Errorf(
@@ -86,7 +87,7 @@ func (r *pgRepository) GetByUUID(ctx context.Context, uuid uuid.UUID) (*Entity, 
 		SELECT id, uuid, name, email, created_at, updated_at
 		FROM users WHERE uuid = $1
 	`
-	row := r.db.QueryRowContext(ctx, query, uuid)
+	row := r.db.QueryRow(ctx, query, uuid)
 
 	user := &Entity{}
 
@@ -99,7 +100,7 @@ func (r *pgRepository) GetByUUID(ctx context.Context, uuid uuid.UUID) (*Entity, 
 		&user.UpdatedAt,
 	)
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if err == pgx.ErrNoRows {
 			return nil, errUserNotFound
 		}
 		return nil, fmt.Errorf(

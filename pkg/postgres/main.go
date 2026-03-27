@@ -1,11 +1,11 @@
 package postgres
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"time"
 
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Config struct {
@@ -60,31 +60,50 @@ func (c Config) Validate() error {
 	return nil
 }
 
-func Connect(cfg Config) (*sql.DB, error) {
+func Connect(cfg Config) (*pgxpool.Pool, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid database configuration: %w", err)
 	}
 
 	connStr := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.DBName, cfg.SSLMode,
+		"postgres://%s:%s@%s:%s/%s?sslmode=%s",
+		cfg.User,
+		cfg.Password,
+		cfg.Host,
+		cfg.Port,
+		cfg.DBName,
+		cfg.SSLMode,
 	)
 
-	db, err := sql.Open("postgres", connStr)
+	poolConfig, err := pgxpool.ParseConfig(connStr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse database config: %w", err)
+	}
+
+	if cfg.MaxOpenConns > 0 {
+		poolConfig.MaxConns = int32(cfg.MaxOpenConns)
+	}
+
+	if cfg.MaxIdleConns > 0 {
+		poolConfig.MinConns = int32(cfg.MaxIdleConns)
+		if poolConfig.MaxConns > 0 && poolConfig.MinConns > poolConfig.MaxConns {
+			poolConfig.MinConns = poolConfig.MaxConns
+		}
+	}
+
+	if cfg.ConnMaxLifetime > 0 {
+		poolConfig.MaxConnLifetime = cfg.ConnMaxLifetime
+	}
+
+	pool, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database connection: %w", err)
 	}
 
-	db.SetMaxOpenConns(cfg.MaxOpenConns)
-	db.SetMaxIdleConns(cfg.MaxIdleConns)
-	db.SetConnMaxLifetime(cfg.ConnMaxLifetime)
-
-	if err := db.Ping(); err != nil {
-		if err := db.Close(); err != nil {
-			return nil, fmt.Errorf("failed to close database: %w", err)
-		}
+	if err := pool.Ping(context.Background()); err != nil {
+		pool.Close()
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
-	return db, nil
+	return pool, nil
 }

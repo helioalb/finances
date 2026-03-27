@@ -16,6 +16,13 @@ type CreateInput struct {
 	OwnerUUID uuid.UUID `json:"owner_uuid" validate:"required"`
 }
 
-func (i *CreateInput) Validate() error {
-	return validate.Struct(i)
+func (ci *CreateInput) Validate() error {
+	return validate.Struct(ci)
+}
+
+func (ci *CreateInput) ToEntity(userID int64) *Entity {
+	return &Entity{
+		UserID: userID,
+		Name:   ci.Name,
+	}
 }

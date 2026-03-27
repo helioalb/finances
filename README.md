@@ -62,7 +62,7 @@ psql finances_test < migrations/20251227203600_add_users_table.sql
 - Go 1.25.3+
 - PostgreSQL (apenas para produção e testes de integração)
 - github.com/google/uuid
-- github.com/lib/pq (driver PostgreSQL)
+- github.com/jackc/pgx/v5 (driver/pool PostgreSQL)
 - github.com/DATA-DOG/go-sqlmock (testes unitários)
 
 ## Desenvolvimento

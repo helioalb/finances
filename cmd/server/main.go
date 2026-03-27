@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"errors"
 	"net/http"
 	"os/signal"
@@ -14,6 +13,7 @@ import (
 	"github.com/helioalb/finances/internal/transaction"
 	"github.com/helioalb/finances/internal/user"
 	"github.com/helioalb/finances/pkg/postgres"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"github.com/labstack/gommon/log"
@@ -64,7 +64,7 @@ func setupEcho() *echo.Echo {
 	return e
 }
 
-func setupDatabase() *sql.DB {
+func setupDatabase() *pgxpool.Pool {
 	cfg := configs.PostgresConfig()
 
 	db, err := postgres.Connect(cfg)

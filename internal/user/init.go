@@ -2,9 +2,9 @@ package user
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo"
 )
 
@@ -13,7 +13,7 @@ type Service interface {
 	GetByUUID(ctx context.Context, uuid uuid.UUID) (*Entity, error)
 }
 
-func Init(e *echo.Echo, db *sql.DB, log echo.Logger) Service {
+func Init(e *echo.Echo, db *pgxpool.Pool, log echo.Logger) Service {
 	repo := newPgRepository(db)
 	svc := newService(repo)
 	handler := newHandler(svc, log)

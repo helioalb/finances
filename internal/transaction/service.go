@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/helioalb/finances/internal/account"
 )
 
 type repository interface {
@@ -11,11 +12,12 @@ type repository interface {
 }
 
 type service struct {
-	repo repository
+	repo       repository
+	accountSvc account.Service
 }
 
-func newService(repo repository) *service {
-	return &service{repo: repo}
+func newService(repo repository, accountSvc account.Service) *service {
+	return &service{repo: repo, accountSvc: accountSvc}
 }
 
 func (s *service) Expense(ctx context.Context, accountUUID uuid.UUID, amount int) error {

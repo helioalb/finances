@@ -2,17 +2,17 @@ package account
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type pgRepository struct {
-	db *sql.DB
+	db *pgxpool.Pool
 }
 
-func newPgRepository(db *sql.DB) *pgRepository {
+func newPgRepository(db *pgxpool.Pool) *pgRepository {
 	if db == nil {
 		panic("db cannot be nil")
 	}
@@ -29,7 +29,7 @@ func (r *pgRepository) Create(ctx context.Context, account *Entity) (*Entity, er
 		VALUES ($1, $2, NOW(), NOW())
 		RETURNING id, uuid, name, user_id, created_at, updated_at`
 
-	row := r.db.QueryRowContext(ctx, query, account.Name, account.UserID)
+	row := r.db.QueryRow(ctx, query, account.Name, account.UserID)
 	createdAccount := &Entity{}
 
 	err := row.Scan(
@@ -57,7 +57,7 @@ func (r *pgRepository) GetByOwnerUUIDAndName(ctx context.Context, ownerUUID uuid
 		INNER JOIN users u ON a.user_id = u.id
 		WHERE u.uuid = $1 AND a.name = $2
 	`
-	row := r.db.QueryRowContext(ctx, query, ownerUUID, name)
+	row := r.db.QueryRow(ctx, query, ownerUUID, name)
 
 	account := &Entity{}
 

@@ -35,10 +35,7 @@ func (s *service) Create(ctx context.Context, input CreateInput) (*Entity, error
 		return nil, err
 	}
 
-	account := &Entity{
-		Name:   input.Name,
-		UserID: user.ID,
-	}
+	account := input.ToEntity(user.ID)
 
 	createdAccount, err := s.repo.Create(ctx, account)
 	if err != nil {

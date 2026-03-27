@@ -2,10 +2,10 @@ package transaction
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/google/uuid"
 	"github.com/helioalb/finances/internal/account"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo"
 )
 
@@ -15,11 +15,9 @@ type Service interface {
 	Transfer(ctx context.Context, fromAccountUUID uuid.UUID, toAccountUUID uuid.UUID, amount int) error
 }
 
-func Init(e *echo.Echo, db *sql.DB, account account.Service) Service {
-	_ = account
-
+func Init(e *echo.Echo, db *pgxpool.Pool, accountSvc account.Service) Service {
 	repo := newPgRepository(db)
-	svc := newService(repo)
+	svc := newService(repo, accountSvc)
 	handler := newHandler(svc, e.Logger)
 
 	registerRoutes(e, handler)
