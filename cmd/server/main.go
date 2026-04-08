@@ -30,8 +30,8 @@ func main() {
 	defer db.Close()
 
 	userSvc := user.Init(e, db, log)
-	accountSvc := account.Init(e, db, userSvc, log)
-	transaction.Init(e, db, accountSvc)
+	account.Init(e, db, userSvc, log)
+	transaction.Init(e, db)
 
 	log.Info("[server_starting][address=:8080]")
 	go func() {
