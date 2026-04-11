@@ -22,7 +22,7 @@ func newService(repo repository) *service {
 
 func (s *service) Expense(ctx context.Context, accountUUID uuid.UUID, amount int, description *string) error {
 	transaction := &Entity{
-		Amount:      amount,
+		Amount:      amount * -1,
 		Type:        "EXPENSE",
 		Description: description,
 	}

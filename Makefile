@@ -1,9 +1,12 @@
 COMPOSE_FILE := deployments/compose.yml
 
-.PHONY: up down purge logs ps restart
+.PHONY: run up down purge logs ps restart
+
+run:
+	docker compose -f $(COMPOSE_FILE) up -d
 
 up:
-	docker compose -f $(COMPOSE_FILE) up -d
+	docker compose -f $(COMPOSE_FILE) up postgres -d
 
 down:
 	docker compose -f $(COMPOSE_FILE) down

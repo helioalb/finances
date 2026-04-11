@@ -50,6 +50,41 @@ func (h *handler) Expense(c echo.Context) error {
 	return c.NoContent(http.StatusCreated)
 }
 
+func (h *handler) Income(c echo.Context) error {
+	var input CreateInput
+
+	if err := c.Bind(&input); err != nil {
+		return h.badRequestResponse(c, err)
+	}
+
+	if err := input.Validate(); err != nil {
+		return h.unprocessableEntityResponse(c, err)
+	}
+
+	ctx := c.Request().Context()
+
+	accountUUID, err := uuid.Parse(input.AccountUUID)
+	if err != nil {
+		return h.badRequestResponse(c, err)
+	}
+
+	err = h.svc.Income(ctx, accountUUID, input.Amount, input.Description)
+	if err != nil {
+		if errors.Is(err, errAccountNotFound) {
+			return h.accountNotFoundResponse(c)
+		}
+
+		return h.internalServerErrorResponse(c, err)
+	}
+
+	return c.NoContent(http.StatusCreated)
+
+}
+
+func (h *handler) Transfer(c echo.Context) error {
+	return nil
+}
+
 func (h *handler) accountNotFoundResponse(c echo.Context) error {
 	return c.JSON(http.StatusNotFound, map[string]string{
 		"error": "account not found",
@@ -77,12 +112,4 @@ func (h *handler) internalServerErrorResponse(c echo.Context, err error) error {
 	return c.JSON(500, map[string]string{
 		"error": "internal server error",
 	})
-}
-
-func (h *handler) Income(c echo.Context) error {
-	return nil
-}
-
-func (h *handler) Transfer(c echo.Context) error {
-	return nil
 }

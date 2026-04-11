@@ -17,5 +17,29 @@ services:
       timeout: 5s
       retries: 5
 
+  app:
+    build:
+      context: ..
+      dockerfile: deployments/Dockerfile
+    container_name: finances-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: finances
+      DB_PASSWORD: finances
+      DB_NAME: finances
+      DB_SSLMODE: disable
+    ports:
+      - "8080:8080"
+    networks:
+      - finances-network
+
 volumes:
   postgres_data:
+
+networks:
+  finances-network:
+    driver: bridge
