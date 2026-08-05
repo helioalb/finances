@@ -20,7 +20,7 @@ func newPgRepository(db *pgxpool.Pool) *pgRepository {
 	return &pgRepository{db: db}
 }
 
-func (r *pgRepository) Create(ctx context.Context, user *Entity) (*Entity, error) {
+func (r *pgRepository) create(ctx context.Context, user *Entity) (*Entity, error) {
 	if user == nil {
 		return nil, fmt.Errorf("repository->user cannot be nil")
 	}
@@ -52,7 +52,7 @@ func (r *pgRepository) Create(ctx context.Context, user *Entity) (*Entity, error
 	return createdUser, nil
 }
 
-func (r *pgRepository) GetByEmail(ctx context.Context, email string) (*Entity, error) {
+func (r *pgRepository) getByEmail(ctx context.Context, email string) (*Entity, error) {
 	query := `
 		SELECT id, uuid, name, email, created_at, updated_at
 		FROM users WHERE email = $1
@@ -82,7 +82,7 @@ func (r *pgRepository) GetByEmail(ctx context.Context, email string) (*Entity, e
 	return user, nil
 }
 
-func (r *pgRepository) GetByUUID(ctx context.Context, uuid uuid.UUID) (*Entity, error) {
+func (r *pgRepository) getByUUID(ctx context.Context, uuid uuid.UUID) (*Entity, error) {
 	query := `
 		SELECT id, uuid, name, email, created_at, updated_at
 		FROM users WHERE uuid = $1

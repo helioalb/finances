@@ -12,12 +12,16 @@ type repository interface {
 	GetByOwnerUUIDAndName(ctx context.Context, ownerUUID uuid.UUID, name string) (*Entity, error)
 }
 
-type service struct {
-	repo    repository
-	userSvc user.Service
+type userService interface {
+	GetByUUID(ctx context.Context, uuid uuid.UUID) (*user.Entity, error)
 }
 
-func newService(repo repository, userSvc user.Service) *service {
+type service struct {
+	repo    repository
+	userSvc userService
+}
+
+func newService(repo repository, userSvc userService) *service {
 	return &service{
 		repo:    repo,
 		userSvc: userSvc,
