@@ -53,7 +53,7 @@ func TestUserServiceCreate(t *testing.T) {
 		}
 	})
 
-	t.Run("fail on create", func(t *testing.T) {
+	t.Run("fail", func(t *testing.T) {
 		someError := errors.New("some error")
 
 		repo := &mockRepository{
@@ -75,6 +75,29 @@ func TestUserServiceCreate(t *testing.T) {
 
 		if !errors.Is(err, someError) {
 			t.Errorf("Expected repository error")
+		}
+	})
+
+	t.Run("success", func(t *testing.T) {
+		repo := &mockRepository{
+			getByEmailFn: func(ctx context.Context, email string) (*Entity, error) {
+				return nil, errUserNotFound
+			},
+			createFn: func(ctx context.Context, user *Entity) (*Entity, error) {
+				return user, nil
+			},
+		}
+
+		svc := newService(repo)
+		input := CreateInput{
+			Name:  "Fulano",
+			Email: "email@valido.com",
+		}
+
+		_, err := svc.Create(context.Background(), input)
+
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
 		}
 	})
 }

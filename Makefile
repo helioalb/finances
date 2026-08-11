@@ -1,12 +1,19 @@
 COMPOSE_FILE := deployments/compose.yml
+GOCACHE ?= $(CURDIR)/.cache/go-build
 
-.PHONY: run build up down purge logs ps restart
+.PHONY: run build test test-race up down purge logs ps restart
 
 run:
 	docker compose -f $(COMPOSE_FILE) up -d
 
 build:
 	./scripts/build.sh
+
+test:
+	GOCACHE="$(GOCACHE)" go test ./...
+
+test-race:
+	GOCACHE="$(GOCACHE)" go test -race ./...
 
 up:
 	docker compose -f $(COMPOSE_FILE) up postgres -d
