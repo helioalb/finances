@@ -48,7 +48,7 @@ func TestUserServiceCreate(t *testing.T) {
 		_, err := svc.Create(context.Background(), input)
 
 		fmt.Println(err)
-		if !errors.Is(err, errEmailInUse) {
+		if !errors.Is(err, ErrEmailInUse) {
 			t.Errorf("Expected errEmailInUse")
 		}
 	})
@@ -58,7 +58,7 @@ func TestUserServiceCreate(t *testing.T) {
 
 		repo := &mockRepository{
 			getByEmailFn: func(ctx context.Context, email string) (*Entity, error) {
-				return nil, errUserNotFound
+				return nil, ErrUserNotFound
 			},
 			createFn: func(ctx context.Context, user *Entity) (*Entity, error) {
 				return nil, someError
@@ -81,7 +81,7 @@ func TestUserServiceCreate(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		repo := &mockRepository{
 			getByEmailFn: func(ctx context.Context, email string) (*Entity, error) {
-				return nil, errUserNotFound
+				return nil, ErrUserNotFound
 			},
 			createFn: func(ctx context.Context, user *Entity) (*Entity, error) {
 				return user, nil

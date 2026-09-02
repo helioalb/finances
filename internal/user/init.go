@@ -13,12 +13,7 @@ type Service interface {
 	GetByUUID(ctx context.Context, uuid uuid.UUID) (*Entity, error)
 }
 
-func Init(e *echo.Echo, db *pgxpool.Pool, log echo.Logger) Service {
+func Init(db *pgxpool.Pool, log echo.Logger) Service {
 	repo := newPgRepository(db)
-	svc := newService(repo)
-	handler := newHandler(svc, log)
-
-	registerRoutes(e, handler)
-
-	return svc
+	return newService(repo)
 }

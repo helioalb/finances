@@ -10,6 +10,7 @@ import (
 
 	"github.com/helioalb/finances/configs"
 	"github.com/helioalb/finances/internal/account"
+	"github.com/helioalb/finances/internal/rest"
 	"github.com/helioalb/finances/internal/transaction"
 	"github.com/helioalb/finances/internal/user"
 	"github.com/helioalb/finances/pkg/postgres"
@@ -29,9 +30,13 @@ func main() {
 	db := setupDatabase()
 	defer db.Close()
 
-	userSvc := user.Init(e, db, log)
+	userSvc := user.Init(db, log)
 	account.Init(e, db, userSvc, log)
 	transaction.Init(e, db)
+
+	restHandler := rest.NewHandler(userSvc, log)
+
+	restHandler.RegisterRoutes(e)
 
 	log.Info("[server_starting][address=:8080]")
 	go func() {

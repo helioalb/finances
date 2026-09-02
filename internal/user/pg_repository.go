@@ -71,7 +71,7 @@ func (r *pgRepository) getByEmail(ctx context.Context, email string) (*Entity, e
 	)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return nil, errUserNotFound
+			return nil, ErrUserNotFound
 		}
 		return nil, fmt.Errorf(
 			"repository->get user by email: %w",
@@ -101,7 +101,7 @@ func (r *pgRepository) getByUUID(ctx context.Context, uuid uuid.UUID) (*Entity, 
 	)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return nil, errUserNotFound
+			return nil, ErrUserNotFound
 		}
 		return nil, fmt.Errorf(
 			"repository->get user by uuid: %w",
