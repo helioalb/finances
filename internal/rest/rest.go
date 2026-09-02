@@ -4,30 +4,27 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/helioalb/finances/internal/account"
 	"github.com/helioalb/finances/internal/platform/httpx"
 	"github.com/helioalb/finances/internal/user"
 	"github.com/labstack/echo"
 )
 
 type handler struct {
-	userSvc user.Service
-	log     echo.Logger
+	userSvc    user.Service
+	accountSvc account.Service
+	log        echo.Logger
 }
 
-func NewHandler(userService user.Service, log echo.Logger) *handler {
+func NewHandler(userSvc user.Service, accountSvc account.Service, log echo.Logger) *handler {
 	return &handler{
-		userSvc: userService,
-		log:     log,
+		userSvc:    userSvc,
+		accountSvc: accountSvc,
+		log:        log,
 	}
 }
 
 func (h *handler) RegisterRoutes(e *echo.Echo) {
-	e.GET("/test", func(c echo.Context) error {
-		return c.JSON(http.StatusNotFound, map[string]string{
-			"error": "account not found",
-		})
-	})
-
 	e.POST("/users", func(c echo.Context) error {
 		var input user.CreateInput
 		requestID := httpx.RequestID(c)
@@ -60,6 +57,39 @@ func (h *handler) RegisterRoutes(e *echo.Echo) {
 
 		return c.JSON(http.StatusCreated, map[string]string{
 			"uuid": u.UUID.String(),
+		})
+	})
+
+	e.POST("/accounts", func(c echo.Context) error {
+		var input account.CreateInput
+
+		if err := c.Bind(&input); err != nil {
+			return h.badRequestResponse(c, err)
+		}
+
+		if err := input.Validate(); err != nil {
+			return h.unprocessableEntityResponse(c, err)
+		}
+
+		ctx := c.Request().Context()
+
+		a, err := h.accountSvc.Create(ctx, input)
+		if err != nil {
+			if errors.Is(err, account.ErrAccountAlreadyExists) {
+				return h.accountAlreadyExistsResponse(c)
+			}
+
+			return h.internalServerErrorResponse(c, err)
+		}
+
+		h.log.Info(
+			"[account][create]",
+			"[http_status=", http.StatusCreated, "]",
+			"[account_uuid=", a.UUID.String(), "]",
+		)
+
+		return c.JSON(http.StatusCreated, map[string]string{
+			"uuid": a.UUID.String(),
 		})
 	})
 }
@@ -156,4 +186,19 @@ func (h *handler) internalServerErrorResponse(c echo.Context, err error) error {
 	return c.JSON(http.StatusInternalServerError, map[string]string{
 		"error": "internal server error"},
 	)
+}
+
+func (h *handler) accountAlreadyExistsResponse(c echo.Context) error {
+	requestID := httpx.RequestID(c)
+
+	h.log.Warn(
+		"[account][create]",
+		"[http_status=", http.StatusConflict, "]",
+		"[error=account already exists]",
+		"[request_id=", requestID, "]",
+	)
+
+	return c.JSON(http.StatusConflict, map[string]string{
+		"error": "account already exists",
+	})
 }

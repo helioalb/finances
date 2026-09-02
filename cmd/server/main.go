@@ -31,10 +31,10 @@ func main() {
 	defer db.Close()
 
 	userSvc := user.Init(db, log)
-	account.Init(e, db, userSvc, log)
+	accountSvc := account.Init(db, userSvc, log)
 	transaction.Init(e, db)
 
-	restHandler := rest.NewHandler(userSvc, log)
+	restHandler := rest.NewHandler(userSvc, accountSvc, log)
 
 	restHandler.RegisterRoutes(e)
 

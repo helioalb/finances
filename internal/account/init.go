@@ -12,12 +12,7 @@ type Service interface {
 	Create(ctx context.Context, input CreateInput) (*Entity, error)
 }
 
-func Init(e *echo.Echo, db *pgxpool.Pool, userSvc user.Service, log echo.Logger) Service {
+func Init(db *pgxpool.Pool, userSvc user.Service, log echo.Logger) Service {
 	repo := newPgRepository(db)
-	service := newService(repo, userSvc)
-	handler := newHandler(service, log)
-
-	registerRoutes(e, handler)
-
-	return service
+	return newService(repo, userSvc)
 }
