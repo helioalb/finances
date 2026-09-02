@@ -5,7 +5,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/labstack/echo"
 )
 
 type Service interface {
@@ -14,12 +13,7 @@ type Service interface {
 	Transfer(ctx context.Context, fromAccountUUID uuid.UUID, toAccountUUID uuid.UUID, amount int) error
 }
 
-func Init(e *echo.Echo, db *pgxpool.Pool) Service {
+func Init(db *pgxpool.Pool) Service {
 	repo := newPgRepository(db)
-	svc := newService(repo)
-	handler := newHandler(svc, e.Logger)
-
-	registerRoutes(e, handler)
-
-	return svc
+	return newService(repo)
 }

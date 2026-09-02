@@ -3,5 +3,5 @@ package transaction
 import "errors"
 
 var (
-	errAccountNotFound = errors.New("account not found")
+	ErrAccountNotFound = errors.New("account not found")
 )

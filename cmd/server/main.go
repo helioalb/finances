@@ -32,11 +32,14 @@ func main() {
 
 	userSvc := user.Init(db, log)
 	accountSvc := account.Init(db, userSvc, log)
-	transaction.Init(e, db)
+	transactionSvc := transaction.Init(db)
 
-	restHandler := rest.NewHandler(userSvc, accountSvc, log)
-
-	restHandler.RegisterRoutes(e)
+	rest.NewHandler(
+		userSvc,
+		accountSvc,
+		transactionSvc,
+		log,
+	).RegisterRoutes(e)
 
 	log.Info("[server_starting][address=:8080]")
 	go func() {

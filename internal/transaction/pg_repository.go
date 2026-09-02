@@ -45,7 +45,7 @@ func (r *pgRepository) Create(ctx context.Context, accountUUID uuid.UUID, transa
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return errAccountNotFound
+			return ErrAccountNotFound
 		}
 
 		return fmt.Errorf(
