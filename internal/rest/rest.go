@@ -177,41 +177,6 @@ func (h *handler) badRequestResponse(c echo.Context, err error) error {
 	)
 }
 
-// func (h *handler) Create(c echo.Context) error {
-// 	var input CreateInput
-// 	requestID := httpx.RequestID(c)
-
-// 	if err := c.Bind(&input); err != nil {
-// 		return h.badRequestResponse(c, err)
-// 	}
-
-// 	if err := input.Validate(); err != nil {
-// 		return h.unprocessableEntityResponse(c, err)
-// 	}
-
-// 	ctx := c.Request().Context()
-
-// 	user, err := h.svc.Create(ctx, input)
-// 	if err != nil {
-// 		if errors.Is(err, errEmailInUse) {
-// 			return h.emailAlreadyInUseResponse(c)
-// 		}
-
-// 		return h.internalServerErrorResponse(c, err)
-// 	}
-
-// 	h.log.Info(
-// 		"[user][create]",
-// 		"[http_status=", http.StatusCreated, "]",
-// 		"[user_uuid=", user.UUID.String(), "]",
-// 		"[request_id=", requestID, "]",
-// 	)
-
-// 	return c.JSON(http.StatusCreated, map[string]string{
-// 		"uuid": user.UUID.String(),
-// 	})
-// }
-
 func (h *handler) unprocessableEntityResponse(c echo.Context, err error) error {
 	requestID := httpx.RequestID(c)
 
