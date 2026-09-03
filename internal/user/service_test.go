@@ -3,7 +3,6 @@ package user
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
@@ -12,7 +11,7 @@ import (
 type mockRepository struct {
 	createFn     func(ctx context.Context, user *Entity) (*Entity, error)
 	getByEmailFn func(ctx context.Context, email string) (*Entity, error)
-	getByUUIDFn  func(ctx context.Context, uuid uuid.UUID) (*Entity, error)
+	getByUUIDFn  func(ctx context.Context, id uuid.UUID) (*Entity, error)
 }
 
 func (m *mockRepository) create(ctx context.Context, user *Entity) (*Entity, error) {
@@ -23,81 +22,110 @@ func (m *mockRepository) create(ctx context.Context, user *Entity) (*Entity, err
 }
 
 func (m *mockRepository) getByEmail(ctx context.Context, email string) (*Entity, error) {
-	return m.getByEmailFn(ctx, email)
+	if m.getByEmailFn != nil {
+		return m.getByEmailFn(ctx, email)
+	}
+	return nil, nil
 }
 
-func (m *mockRepository) getByUUID(ctx context.Context, uuid uuid.UUID) (*Entity, error) {
-	return m.getByUUIDFn(ctx, uuid)
+func (m *mockRepository) getByUUID(ctx context.Context, id uuid.UUID) (*Entity, error) {
+	if m.getByUUIDFn != nil {
+		return m.getByUUIDFn(ctx, id)
+	}
+	return nil, nil
 }
 
 func TestUserServiceCreate(t *testing.T) {
-	t.Run("email already in use", func(t *testing.T) {
-		repo := &mockRepository{
-			getByEmailFn: func(_ context.Context, _ string) (*Entity, error) {
-				return nil, nil // err nil means the email already exists
+	someError := errors.New("database connection failed")
+
+	tests := []struct {
+		name        string
+		input       CreateInput
+		mockRepo    *mockRepository
+		wantErr     error
+		checkResult func(t *testing.T, created *Entity)
+	}{
+		{
+			name: "given a email already in use when creating a user then it should return ErrEmailInUse",
+			input: CreateInput{
+				Name:  "Fulano",
+				Email: "email@ja.em.uso",
 			},
-		}
-
-		svc := newService(repo)
-
-		input := CreateInput{
-			Name:  "Fulano",
-			Email: "email@ja.em.uso",
-		}
-
-		_, err := svc.Create(context.Background(), input)
-
-		fmt.Println(err)
-		if !errors.Is(err, ErrEmailInUse) {
-			t.Errorf("Expected errEmailInUse")
-		}
-	})
-
-	t.Run("fail", func(t *testing.T) {
-		someError := errors.New("some error")
-
-		repo := &mockRepository{
-			getByEmailFn: func(ctx context.Context, email string) (*Entity, error) {
-				return nil, ErrUserNotFound
+			mockRepo: &mockRepository{
+				getByEmailFn: func(_ context.Context, _ string) (*Entity, error) {
+					// Retornar entidade (não nil) e sem erro simula e-mail já existente
+					return &Entity{Name: "Existente"}, nil
+				},
 			},
-			createFn: func(ctx context.Context, user *Entity) (*Entity, error) {
-				return nil, someError
+			wantErr: ErrEmailInUse,
+		},
+		{
+			name: "given a repository error when creating a user then it should bubble up the error",
+			input: CreateInput{
+				Name:  "Fulano",
+				Email: "email@valido.com",
 			},
-		}
-
-		svc := newService(repo)
-		input := CreateInput{
-			Name:  "Fulano",
-			Email: "email@valido.com",
-		}
-
-		_, err := svc.Create(context.Background(), input)
-
-		if !errors.Is(err, someError) {
-			t.Errorf("Expected repository error")
-		}
-	})
-
-	t.Run("success", func(t *testing.T) {
-		repo := &mockRepository{
-			getByEmailFn: func(ctx context.Context, email string) (*Entity, error) {
-				return nil, ErrUserNotFound
+			mockRepo: &mockRepository{
+				getByEmailFn: func(_ context.Context, _ string) (*Entity, error) {
+					return nil, ErrUserNotFound
+				},
+				createFn: func(_ context.Context, _ *Entity) (*Entity, error) {
+					return nil, someError
+				},
 			},
-			createFn: func(ctx context.Context, user *Entity) (*Entity, error) {
-				return user, nil
+			wantErr: someError,
+		},
+		{
+			name: "given a valid input when creating a user then it should succeed and return created entity",
+			input: CreateInput{
+				Name:  "Fulano",
+				Email: "email@valido.com",
 			},
-		}
+			mockRepo: &mockRepository{
+				getByEmailFn: func(_ context.Context, _ string) (*Entity, error) {
+					return nil, ErrUserNotFound
+				},
+				createFn: func(_ context.Context, u *Entity) (*Entity, error) {
+					// Valida se os dados passados para a camada de persistência estão corretos
+					if u.Name != "Fulano" || u.Email != "email@valido.com" {
+						t.Fatalf("create received unexpected entity fields: %+v", u)
+					}
+					return u, nil
+				},
+			},
+			wantErr: nil,
+			checkResult: func(t *testing.T, created *Entity) {
+				if created == nil {
+					t.Fatal("expected non-nil user entity")
+				}
+				if created.Name != "Fulano" {
+					t.Errorf("expected name 'Fulano', got '%s'", created.Name)
+				}
+			},
+		},
+	}
 
-		svc := newService(repo)
-		input := CreateInput{
-			Name:  "Fulano",
-			Email: "email@valido.com",
-		}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-		_, err := svc.Create(context.Background(), input)
+			svc := newService(tt.mockRepo)
+			got, err := svc.Create(context.Background(), tt.input)
 
-		if err != nil {
-			t.Errorf("Unexpected error: %v", err)
-		}
-	})
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Fatalf("expected error %v, got %v", tt.wantErr, err)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if tt.checkResult != nil {
+				tt.checkResult(t, got)
+			}
+		})
+	}
 }
