@@ -21,7 +21,7 @@ type service struct {
 	userSvc userService
 }
 
-func newService(repo repository, userSvc userService) *service {
+func NewService(repo repository, userSvc userService) *service {
 	return &service{
 		repo:    repo,
 		userSvc: userSvc,

@@ -1,27 +1,28 @@
-package account
+package postgres
 
 import (
 	"context"
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/helioalb/finances/internal/account"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type pgRepository struct {
+type repository struct {
 	db *pgxpool.Pool
 }
 
-func newPgRepository(db *pgxpool.Pool) *pgRepository {
+func NewRepository(db *pgxpool.Pool) *repository {
 	if db == nil {
 		panic("db cannot be nil")
 	}
 
-	return &pgRepository{db: db}
+	return &repository{db: db}
 }
 
-func (r *pgRepository) Create(ctx context.Context, account *Entity) (*Entity, error) {
-	if account == nil {
+func (r *repository) Create(ctx context.Context, a *account.Entity) (*account.Entity, error) {
+	if a == nil {
 		return nil, fmt.Errorf("repository->account cannot be nil")
 	}
 
@@ -29,8 +30,8 @@ func (r *pgRepository) Create(ctx context.Context, account *Entity) (*Entity, er
 		VALUES ($1, $2, NOW(), NOW())
 		RETURNING id, uuid, name, user_id, created_at, updated_at`
 
-	row := r.db.QueryRow(ctx, query, account.Name, account.UserID)
-	createdAccount := &Entity{}
+	row := r.db.QueryRow(ctx, query, a.Name, a.UserID)
+	createdAccount := &account.Entity{}
 
 	err := row.Scan(
 		&createdAccount.ID,
@@ -50,7 +51,7 @@ func (r *pgRepository) Create(ctx context.Context, account *Entity) (*Entity, er
 	return createdAccount, nil
 }
 
-func (r *pgRepository) GetByOwnerUUIDAndName(ctx context.Context, ownerUUID uuid.UUID, name string) (*Entity, error) {
+func (r *repository) GetByOwnerUUIDAndName(ctx context.Context, ownerUUID uuid.UUID, name string) (*account.Entity, error) {
 	query := `
 		SELECT a.id, a.uuid, a.name, a.user_id, a.created_at, a.updated_at
 		FROM accounts a
@@ -59,7 +60,7 @@ func (r *pgRepository) GetByOwnerUUIDAndName(ctx context.Context, ownerUUID uuid
 	`
 	row := r.db.QueryRow(ctx, query, ownerUUID, name)
 
-	account := &Entity{}
+	account := &account.Entity{}
 
 	err := row.Scan(
 		&account.ID,

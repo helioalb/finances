@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/helioalb/finances/configs"
-	"github.com/helioalb/finances/internal/account"
+	accountFactory "github.com/helioalb/finances/internal/account/factory"
 	"github.com/helioalb/finances/internal/rest"
 	"github.com/helioalb/finances/internal/transaction"
 	userFactory "github.com/helioalb/finances/internal/user/factory"
@@ -31,7 +31,7 @@ func main() {
 	defer db.Close()
 
 	userSvc := userFactory.BuildService(db, log)
-	accountSvc := account.Init(db, userSvc, log)
+	accountSvc := accountFactory.BuildService(db, userSvc, log)
 	transactionSvc := transaction.Init(db)
 
 	rest.NewHandler(
