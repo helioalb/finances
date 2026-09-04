@@ -10,10 +10,7 @@ build:
 	./scripts/build.sh
 
 test:
-	GOCACHE="$(GOCACHE)" go test ./...
-
-test-race:
-	GOCACHE="$(GOCACHE)" go test -race ./...
+	GOCACHE="$(GOCACHE)" go test -race -v ./...
 
 up:
 	docker compose -f $(COMPOSE_FILE) up postgres -d
@@ -31,3 +28,6 @@ ps:
 	docker compose -f $(COMPOSE_FILE) ps
 
 restart: down up
+
+lint:
+	docker run --rm -v $(CURDIR):/app -w /app golangci/golangci-lint:v2.13.2 golangci-lint run

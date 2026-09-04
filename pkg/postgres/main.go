@@ -41,10 +41,6 @@ func (c Config) Validate() error {
 		return fmt.Errorf("dbname is required")
 	}
 
-	if c.SSLMode == "" {
-		c.SSLMode = "disable"
-	}
-
 	if c.MaxOpenConns < 0 {
 		return fmt.Errorf("max open connections cannot be negative")
 	}

@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/helioalb/finances/internal/account"
 )
 
 type repository interface {
@@ -12,8 +11,7 @@ type repository interface {
 }
 
 type service struct {
-	repo       repository
-	accountSvc account.Service
+	repo repository
 }
 
 func NewService(repo repository) *service {
