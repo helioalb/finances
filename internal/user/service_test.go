@@ -14,21 +14,21 @@ type mockRepository struct {
 	getByUUIDFn  func(ctx context.Context, id uuid.UUID) (*Entity, error)
 }
 
-func (m *mockRepository) create(ctx context.Context, user *Entity) (*Entity, error) {
+func (m *mockRepository) Create(ctx context.Context, user *Entity) (*Entity, error) {
 	if m.createFn != nil {
 		return m.createFn(ctx, user)
 	}
 	return nil, nil
 }
 
-func (m *mockRepository) getByEmail(ctx context.Context, email string) (*Entity, error) {
+func (m *mockRepository) GetByEmail(ctx context.Context, email string) (*Entity, error) {
 	if m.getByEmailFn != nil {
 		return m.getByEmailFn(ctx, email)
 	}
 	return nil, nil
 }
 
-func (m *mockRepository) getByUUID(ctx context.Context, id uuid.UUID) (*Entity, error) {
+func (m *mockRepository) GetByUUID(ctx context.Context, id uuid.UUID) (*Entity, error) {
 	if m.getByUUIDFn != nil {
 		return m.getByUUIDFn(ctx, id)
 	}
@@ -41,7 +41,7 @@ func TestUserServiceCreate(t *testing.T) {
 	t.Run("given a email already in use when creating a user then it should return ErrEmailInUse", func(t *testing.T) {
 		t.Parallel()
 
-		svc := newService(&mockRepository{
+		svc := NewService(&mockRepository{
 			getByEmailFn: func(_ context.Context, _ string) (*Entity, error) {
 				// Retornar entidade (não nil) e sem erro simula e-mail já existente
 				return &Entity{Name: "Existente"}, nil
@@ -60,7 +60,7 @@ func TestUserServiceCreate(t *testing.T) {
 	t.Run("given a repository error when creating a user then it should bubble up the error", func(t *testing.T) {
 		t.Parallel()
 
-		svc := newService(&mockRepository{
+		svc := NewService(&mockRepository{
 			getByEmailFn: func(_ context.Context, _ string) (*Entity, error) {
 				return nil, ErrUserNotFound
 			},
@@ -81,7 +81,7 @@ func TestUserServiceCreate(t *testing.T) {
 	t.Run("given a valid input when creating a user then it should succeed and return created entity", func(t *testing.T) {
 		t.Parallel()
 
-		svc := newService(&mockRepository{
+		svc := NewService(&mockRepository{
 			getByEmailFn: func(_ context.Context, _ string) (*Entity, error) {
 				return nil, ErrUserNotFound
 			},

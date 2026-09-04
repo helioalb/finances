@@ -12,7 +12,7 @@ import (
 	"github.com/helioalb/finances/internal/account"
 	"github.com/helioalb/finances/internal/rest"
 	"github.com/helioalb/finances/internal/transaction"
-	"github.com/helioalb/finances/internal/user"
+	userFactory "github.com/helioalb/finances/internal/user/factory"
 	"github.com/helioalb/finances/pkg/postgres"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo"
@@ -30,7 +30,7 @@ func main() {
 	db := setupDatabase()
 	defer db.Close()
 
-	userSvc := user.Init(db, log)
+	userSvc := userFactory.BuildService(db, log)
 	accountSvc := account.Init(db, userSvc, log)
 	transactionSvc := transaction.Init(db)
 
