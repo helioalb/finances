@@ -1,4 +1,4 @@
-package transaction
+package postgres
 
 import (
 	"context"
@@ -6,19 +6,11 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/helioalb/finances/internal/transaction"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type pgRepository struct {
-	db *pgxpool.Pool
-}
-
-func newPgRepository(db *pgxpool.Pool) *pgRepository {
-	return &pgRepository{db: db}
-}
-
-func (r *pgRepository) Create(ctx context.Context, accountUUID uuid.UUID, transaction *Entity) error {
+func (r *repository) Create(ctx context.Context, accountUUID uuid.UUID, t *transaction.Entity) error {
 
 	query := `INSERT INTO transactions (account_id, amount, type, description)
 	 SELECT a.id, $1, $2, $3 FROM accounts a WHERE a.uuid = $4
@@ -28,13 +20,13 @@ func (r *pgRepository) Create(ctx context.Context, accountUUID uuid.UUID, transa
 	row := r.db.QueryRow(
 		ctx,
 		query,
-		transaction.Amount,
-		transaction.Type,
-		transaction.Description,
+		t.Amount,
+		t.Type,
+		t.Description,
 		accountUUID,
 	)
 
-	createdTransaction := &Entity{}
+	createdTransaction := &transaction.Entity{}
 
 	err := row.Scan(
 		&createdTransaction.UUID,
@@ -45,7 +37,7 @@ func (r *pgRepository) Create(ctx context.Context, accountUUID uuid.UUID, transa
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return ErrAccountNotFound
+			return transaction.ErrAccountNotFound
 		}
 
 		return fmt.Errorf(

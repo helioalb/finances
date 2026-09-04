@@ -11,7 +11,7 @@ import (
 	"github.com/helioalb/finances/configs"
 	accountFactory "github.com/helioalb/finances/internal/account/factory"
 	"github.com/helioalb/finances/internal/rest"
-	"github.com/helioalb/finances/internal/transaction"
+	transactionFactory "github.com/helioalb/finances/internal/transaction/factory"
 	userFactory "github.com/helioalb/finances/internal/user/factory"
 	"github.com/helioalb/finances/pkg/postgres"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -32,7 +32,7 @@ func main() {
 
 	userSvc := userFactory.BuildService(db, log)
 	accountSvc := accountFactory.BuildService(db, userSvc, log)
-	transactionSvc := transaction.Init(db)
+	transactionSvc := transactionFactory.BuildService(db)
 
 	rest.NewHandler(
 		userSvc,

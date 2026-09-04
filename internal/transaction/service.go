@@ -16,7 +16,7 @@ type service struct {
 	accountSvc account.Service
 }
 
-func newService(repo repository) *service {
+func NewService(repo repository) *service {
 	return &service{repo: repo}
 }
 
