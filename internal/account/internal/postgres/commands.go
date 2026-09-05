@@ -2,9 +2,11 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/helioalb/finances/internal/account"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 func (r *repository) Create(ctx context.Context, a *account.Entity) (*account.Entity, error) {
@@ -28,6 +30,11 @@ func (r *repository) Create(ctx context.Context, a *account.Entity) (*account.En
 		&createdAccount.UpdatedAt,
 	)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" && pgErr.ConstraintName == "uq_accounts_user_name" {
+			return nil, fmt.Errorf("repository->create account: %w", account.ErrAccountAlreadyExists)
+		}
+
 		return nil, fmt.Errorf(
 			"repository->create account: %w",
 			err,

@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -27,7 +28,7 @@ func (r *repository) GetByEmail(ctx context.Context, email string) (*user.Entity
 		&u.UpdatedAt,
 	)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, user.ErrUserNotFound
 		}
 		return nil, fmt.Errorf(
@@ -57,7 +58,7 @@ func (r *repository) GetByUUID(ctx context.Context, uuid uuid.UUID) (*user.Entit
 		&u.UpdatedAt,
 	)
 	if err != nil {
-		if err == pgx.ErrNoRows {
+		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, user.ErrUserNotFound
 		}
 		return nil, fmt.Errorf(

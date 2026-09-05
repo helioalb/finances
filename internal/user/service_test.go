@@ -38,13 +38,12 @@ func (m *mockRepository) GetByUUID(ctx context.Context, id uuid.UUID) (*Entity, 
 func TestUserServiceCreate(t *testing.T) {
 	someError := errors.New("database connection failed")
 
-	t.Run("given a email already in use when creating a user then it should return ErrEmailInUse", func(t *testing.T) {
+	t.Run("given an email already in use when creating a user then it should return ErrEmailInUse", func(t *testing.T) {
 		t.Parallel()
 
 		svc := NewService(&mockRepository{
-			getByEmailFn: func(_ context.Context, _ string) (*Entity, error) {
-				// Retornar entidade (não nil) e sem erro simula e-mail já existente
-				return &Entity{Name: "Existente"}, nil
+			createFn: func(_ context.Context, _ *Entity) (*Entity, error) {
+				return nil, ErrEmailInUse
 			},
 		})
 		_, err := svc.Create(context.Background(), CreateInput{
@@ -61,9 +60,6 @@ func TestUserServiceCreate(t *testing.T) {
 		t.Parallel()
 
 		svc := NewService(&mockRepository{
-			getByEmailFn: func(_ context.Context, _ string) (*Entity, error) {
-				return nil, ErrUserNotFound
-			},
 			createFn: func(_ context.Context, _ *Entity) (*Entity, error) {
 				return nil, someError
 			},
@@ -82,9 +78,6 @@ func TestUserServiceCreate(t *testing.T) {
 		t.Parallel()
 
 		svc := NewService(&mockRepository{
-			getByEmailFn: func(_ context.Context, _ string) (*Entity, error) {
-				return nil, ErrUserNotFound
-			},
 			createFn: func(_ context.Context, u *Entity) (*Entity, error) {
 				// Valida se os dados passados para a camada de persistência estão corretos
 				if u.Name != "Fulano" || u.Email != "email@valido.com" {

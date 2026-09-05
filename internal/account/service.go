@@ -29,11 +29,6 @@ func NewService(repo repository, userSvc userService) *service {
 }
 
 func (s *service) Create(ctx context.Context, input CreateInput) (*Entity, error) {
-	_, err := s.repo.GetByOwnerUUIDAndName(ctx, input.OwnerUUID, input.Name)
-	if err == nil {
-		return nil, ErrAccountAlreadyExists
-	}
-
 	user, err := s.userSvc.GetByUUID(ctx, input.OwnerUUID)
 	if err != nil {
 		return nil, err

@@ -22,11 +22,6 @@ func NewService(repo repository) *service {
 }
 
 func (s *service) Create(ctx context.Context, input CreateInput) (*Entity, error) {
-	_, err := s.repo.GetByEmail(ctx, input.Email)
-	if err == nil {
-		return nil, ErrEmailInUse
-	}
-
 	user := input.ToEntity()
 
 	createdUser, err := s.repo.Create(ctx, user)

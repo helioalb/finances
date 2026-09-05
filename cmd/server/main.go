@@ -30,8 +30,8 @@ func main() {
 	db := setupDatabase()
 	defer db.Close()
 
-	userSvc := userFactory.BuildService(db, log)
-	accountSvc := accountFactory.BuildService(db, userSvc, log)
+	userSvc := userFactory.BuildService(db)
+	accountSvc := accountFactory.BuildService(db, userSvc)
 	transactionSvc := transactionFactory.BuildService(db)
 
 	rest.NewHandler(

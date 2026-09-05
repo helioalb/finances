@@ -79,6 +79,10 @@ func (h *handler) RegisterRoutes(e *echo.Echo) {
 
 		a, err := h.accountSvc.Create(ctx, input)
 		if err != nil {
+			if errors.Is(err, user.ErrUserNotFound) {
+				return h.userNotFoundResponse(c)
+			}
+
 			if errors.Is(err, account.ErrAccountAlreadyExists) {
 				return h.accountAlreadyExistsResponse(c)
 			}
@@ -239,5 +243,11 @@ func (h *handler) accountAlreadyExistsResponse(c echo.Context) error {
 func (h *handler) accountNotFoundResponse(c echo.Context) error {
 	return c.JSON(http.StatusNotFound, map[string]string{
 		"error": "account not found",
+	})
+}
+
+func (h *handler) userNotFoundResponse(c echo.Context) error {
+	return c.JSON(http.StatusNotFound, map[string]string{
+		"error": "user not found",
 	})
 }

@@ -2,10 +2,12 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/helioalb/finances/internal/account"
+	"github.com/jackc/pgx/v5"
 )
 
 func (r *repository) GetByOwnerUUIDAndName(ctx context.Context, ownerUUID uuid.UUID, name string) (*account.Entity, error) {
@@ -17,22 +19,26 @@ func (r *repository) GetByOwnerUUIDAndName(ctx context.Context, ownerUUID uuid.U
 	`
 	row := r.db.QueryRow(ctx, query, ownerUUID, name)
 
-	account := &account.Entity{}
+	accountEntity := &account.Entity{}
 
 	err := row.Scan(
-		&account.ID,
-		&account.UUID,
-		&account.Name,
-		&account.UserID,
-		&account.CreatedAt,
-		&account.UpdatedAt,
+		&accountEntity.ID,
+		&accountEntity.UUID,
+		&accountEntity.Name,
+		&accountEntity.UserID,
+		&accountEntity.CreatedAt,
+		&accountEntity.UpdatedAt,
 	)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, account.ErrAccountNotFound
+		}
+
 		return nil, fmt.Errorf(
 			"repository->get by owner uuid and name: %w",
 			err,
 		)
 	}
 
-	return account, nil
+	return accountEntity, nil
 }

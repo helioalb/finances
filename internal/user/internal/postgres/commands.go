@@ -2,9 +2,11 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/helioalb/finances/internal/user"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 func (r *repository) Create(ctx context.Context, u *user.Entity) (*user.Entity, error) {
@@ -30,6 +32,11 @@ func (r *repository) Create(ctx context.Context, u *user.Entity) (*user.Entity, 
 		&createdUser.UpdatedAt,
 	)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" && pgErr.ConstraintName == "users_email_key" {
+			return nil, fmt.Errorf("repository->create user: %w", user.ErrEmailInUse)
+		}
+
 		return nil, fmt.Errorf(
 			"repository->create user: %w",
 			err,
